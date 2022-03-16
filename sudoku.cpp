@@ -60,6 +60,7 @@ bool noDuplicatesOrZero(int * array){
         //std::cout << "array: " << array[i] << "  index: " << i << std::endl;
         for (int j = i ; j < 9 ; j++){
 
+            //std::cout << "array[i]: " << array[i] << "  array[j]: " << array[j] << std::endl;
             if (i != j){
                 if ((array[i] == array[j]) || (array[i] == 0) || (array[j] == 0)){
                     return false;
@@ -67,7 +68,7 @@ bool noDuplicatesOrZero(int * array){
             }
         }
     }
-    
+    //std::cout << "--" << std::endl;
     return true;
 }
 
@@ -122,7 +123,49 @@ bool isCorrectGuess(int * board, int choice, int value){
         return false;
     }
 
+    for (int i = 0 ; i < 9 ; i++){
+        array[i] = 0;
+    }
+
     // Boxes checking
+    int row = 0;
+    int col = 0;
+    
+    if ((choice % 9) < 3){
+        col = 0;
+    }
+    else if ((choice % 10) < 6){
+        col = 1;
+    }
+    else if ((choice % 10) < 9){
+        col = 2;
+    }
+
+    if (choice < 9*3){
+        row = 0;
+    }
+    else if (choice < 9*6){
+        row = 1;
+    }
+    else if (choice < 9*9){
+        row = 2;
+    }
+
+    //std::cout << "col: " << col << "  row: " << row << std::endl;
+    int increment = 0;
+    int topLeftNum = row * 27 + col * 3; // The top left number of whatever box their seleciton is
+    for (int i = 0 ; i < 3 ; i++){
+        array[(board[topLeftNum + i + increment] & 0b00001111) - 1] = (board[topLeftNum + i + increment] & 0b00001111);
+        //std::cout << "index: " << (board[topLeftNum + i + increment] & 0b00001111) - 1 << "  value: " << (board[topLeftNum + i + increment] & 0b00001111) << std::endl;
+        if (i == 2 && increment < 18){
+            i = -1; // Needs to go back to -1, not 0 because 1 will be added when the for loop repeats directly after this, making it 0
+            increment += 9;
+        }
+    }
+
+    if (!noDuplicatesOrZero(array)){
+        return false;
+    }
 
     return true;
 }
