@@ -1,0 +1,1 @@
+optionsSize == 0
