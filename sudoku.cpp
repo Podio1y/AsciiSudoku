@@ -10,27 +10,18 @@ void unhide(int*, int);
 bool isGameWon(int*);
 bool isCorrectGuess(int*, int, int);
 bool noDuplicatesOrZero(int*);
-int * generateBoard();
+int* generateBoard();
 void removeElement(int*&, int, int);
 int addElement(int*&, int, int);
 bool validPlacement(int*, int, int);
 void printArray(int*, int);
-void addBox(int*&, int, int*);
-int * newGen();
 void removeElementByValue(int*&, int, int);
-
-// Each row you can make arrays that show where each number fits. i.e 5 fits into these slots {1,3,5,6,7}
-// or 8 fits into these slots {0,2,3}. 
-// Then run an algorithm o find a combination which fills all 9, only using one each. DONE  b8
-
-// After making first row randomly:
-// Check what each box and column already contains. 
-// If a column is in a box, and they share a common needed value, that should work. 
-// Also check if that common needed value is elsewhere as well, to make sure not to block another spot.
+bool isPresent(int*, int, int);
+bool validRow(int*, int);
 
 int main(){
 
-    // int * board = new int [81]{5,9,1,4,2,3,7,6,8,4,2,8,6,7,5,1,3,9,3,7,6,9,8,1,2,4,5,6,8,7,3,5,4,9,2,1,9,5,3,2,1,6,4,8,7,2,1,4,8,9,7,6,5,3,1,6,2,5,3,9,8,7,4,8,3,9,7,4,2,5,1,6,7,4,5,1,6,8,3,9,2}; // Board array
+    //int * board = new int [81]{5,9,1,4,2,3,7,6,8,4,2,8,6,7,5,1,3,9,3,7,6,9,8,1,2,4,5,6,8,7,3,5,4,9,2,1,  9,5,3,8,1,6,4,8,7  ,2,1,4,8,9,7,6,5,3,1,6,2,5,3,9,8,7,4,8,3,9,7,4,2,5,1,6,7,4,5,1,6,8,3,9,2}; // Board array
     int * board = new int [81];
     // int * testBoard = new int[81]{5,9,0,4,2,3,7,6,8,4,2,8,6,7,5,1,3,9,3,7,6,9,8,1,2,4,5,6,8,7,3,5,4,9,2,1,9,5,3,2,1,6,4,8,7,2,1,4,8,9,7,6,5,3,1,6,2,5,3,9,8,7,4,8,3,9,7,4,2,5,1,6,7,4,5,1,6,8,3,9,2};
     int choice = 0;
@@ -41,53 +32,38 @@ int main(){
         board[i] = 0;
     }
 
-    std::cout << "Generating Board..." <<std::endl;
+    std::cout << "Generating Board..." << std::endl;
     board = generateBoard();
-    //board = newGen();
-
-    // TESING validPlacement function
-    // board[10] = 1;
-    // board[11] = 3;
-    // board[1] = 4;
-    // std::cout << validPlacement(board, 0, 2);
 
     // For loop for testing the printBoard funtion. Tests to see if printing hidden/unhidden values properly
-    // for (int i = 0 ; i < 81 ; i++){
-    //     //board[i] = (i % 9) + 1;
-    //     if (i % 9 != 0){
-    //         board[i] = board[i] ^ 0b00010000;
-    //     }
-    // }
-    printBoard(board);
+    for (int i = 0 ; i < 81 ; i++){
+        if (i % 9 != 0){
+            board[i] = board[i] ^ 0b00010000;
+        }
+    }
 
-    // TEST ISCORRECTGUESS() WITH THE ZEROES AND UN-INITIALIZED VALUES TO SEE IF IT WORKS
-    // std::cout << "test";
-    // board = generateBoard();
-    // printBoard(board);
+    while(lives > 0){
+        system("cls");
+        printBoard(board);
 
-    // while(lives > 0){
-    //     system("cls");
-    //     printBoard(board);
-
-    //     choice = userInput(board);
+        choice = userInput(board);
         
-    //     std::cout << "Please enter your guess: " << std::endl;
-    //     std::cin >> value;
+        std::cout << "Please enter your guess: " << std::endl;
+        std::cin >> value;
 
-    //     while ((!isCorrectGuess(board, choice, value) && lives > 0)){
-    //         std::cout << "That can't go there!" << std::endl;
-    //         lives--;
-    //         choice = userInput(board);
+        while ((!isCorrectGuess(board, choice, value) && lives > 0)){
+            std::cout << "That can't go there!" << std::endl;
+            lives--;
+            choice = userInput(board);
 
-    //         std::cout << "Please enter your guess: " << std::endl;
-    //         std::cin >> value;
-    //     }
-    //     if (lives <= 0 || isGameWon(board)){
-    //         break;
-    //     }
-    //     unhide(board, choice);
-    // }
-    // std::cout << checkIfHidden(board, 2, 8);
+            std::cout << "Please enter your guess: " << std::endl;
+            std::cin >> value;
+        }
+        if (lives <= 0 || isGameWon(board)){
+            break;
+        }
+        unhide(board, choice);
+    }
 
     delete board;
     board = nullptr;
@@ -95,63 +71,13 @@ int main(){
     return 0;
 }
 
-int * newGen(){
-    // Random seed for the modern random engine
-    unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
-
-    // Random engine
-    std::default_random_engine eng(seed);
-
-    int * board = new int [81];
-
-    for (int i = 9 ; i < 81 ; i++){
-        board[i] = 0;
-    }
-
-    bool numFound = false;
-    int randomNum = 0;
-
-    int * options = new int [9]{1,2,3,4,5,6,7,8,9};
-    int optionsSize = 9;
-
-    for (int i = 0 ; i < 9 ; i++){
-        board[i] = i + 1;
-    }
-
-    for (int i = 9 ; i < 81 ; i++){
-
-        // do{
-        //     randomNum = (eng() % 9) + 1;
-        //     numFound = validPlacement(board, i, randomNum);
-        //     board[i] = randomNum;
-        //     std::cout << randomNum << " - " << numFound << std::endl;
-        //     //printBoard(board);
-        // }
-        // while(!numFound);
-        // std::cout << "============  " << i << std::endl;
-        // printBoard(board);
-
-        do{
-            randomNum = eng() % optionsSize;
-            numFound = validPlacement(board, i, options[randomNum]);
-            board[i] = options[randomNum];
-            //printArray(options, optionsSize);
-            removeElement(options, optionsSize, randomNum);
-            optionsSize--;
+bool isPresent(int * array, int size, int element){
+    for (int i = 0 ; i < size ; i++){
+        if (element == array[i]){
+            return true;
         }
-        while(!numFound && optionsSize > 0);
-        if ((optionsSize == 0) && (((i - 1) % 9) != 8)){
-            i -= i%9;
-        }
-        std::cout << i << std::endl;
-        printBoard(board);
-        delete[] options;
-        options = nullptr;
-        options = new int[9]{1,2,3,4,5,6,7,8,9};
-        optionsSize = 9;
     }
-
-    return board;
+    return false;
 }
 
 void removeElementByValue(int * array, int element, int size){
@@ -159,36 +85,6 @@ void removeElementByValue(int * array, int element, int size){
         if (array[i] == element){
             removeElement(array, size, i);
         }
-    }
-}
-
-int* optimalPlacements(int** arrays, int size){
-    int* optimalPlaces = new int[9];
-
-
-}
-
-void addBox(int*& board, int boxnum, int* box){
-    int topLeftNum = 0;
-
-    for (int i = 0 ; i < 3 ; i++){
-        if (boxnum <= (3*(i + 1)) ){
-            topLeftNum = (i * 27) + (boxnum - (1 + i*3))*3;
-            break;
-        }
-    }
-
-
-    int increment = 0;
-    int index = 0;
-
-    for (int i = 0 ; i < 3 ; i++){
-        board[topLeftNum + i + increment] = box[index];
-        if (i == 2 && increment < 18){
-            i = -1; // Needs to go back to -1, not 0 because 1 will be added when the for loop repeats directly after this, making it 0
-            increment += 9;
-        }
-        index++;
     }
 }
 
@@ -283,7 +179,7 @@ int * generateBoard(){
                     }
                     //printArray(nums, numsSize);
                     //printBoard(board);
-                    //std::cout << i << j << "leaking" << count << std::endl;
+                    std::cout << i << j << "leaking" << count << std::endl;
                     count += 5;
                     // if (i == 3 && j == 5){
                     //     count35 += 5;
@@ -294,18 +190,20 @@ int * generateBoard(){
                 // If it got stuck, retry that row. 
                 // This is a really terrible method and relies on luck, but eventually it works. 
                 // I am trying to make a much smarter algorithm.
+                //std::cout << "VALID ROW" << validRow(board, j) << std::endl;
+                
                 if (count == 500){
+                    printBoard(board);
                     for (int i = 0 ; i < 9 ; i++){
                         board[i + j*9] = 0;
                     }
                     j--;
                     count = 0;
+                    printBoard(board);
                     break;
                 }
             }
-            //if (count35 >= 3500){
-            //    break;
-            //}
+
             numsSize = 9;
             delete[] nums;
             nums = nullptr;
@@ -313,6 +211,19 @@ int * generateBoard(){
         }
     
     return board;
+}
+
+bool validRow(int * board, int row){
+    for (int i = 0 ; i < 9 ; i++){
+        //std::cout << "valid row" << i << std::endl;
+        if (board[row*9 + i] != 0){
+            if (!validPlacement(board, row*9 + i, board[row*9+i])){
+                return false;
+            }
+        }
+        std::cout << "valid row" << i << " board[i]: " << board[row*9+i] << std::endl;
+    }
+    return true;
 }
 
 void printArray(int * array, int size){
@@ -422,10 +333,10 @@ bool validPlacement(int * board, int choice, int value){
     if ((choice % 9) < 3){
         col = 0;
     }
-    else if ((choice % 10) < 6){
+    else if ((choice % 9) < 6){
         col = 1;
     }
-    else if ((choice % 10) < 9){
+    else if ((choice % 9) < 9){
         col = 2;
     }
 
@@ -468,6 +379,7 @@ bool validPlacement(int * board, int choice, int value){
     // for (int i = 0 ; i < size ; i++){
     //     std::cout << "box check array[i]: " << array[i] << std::endl;
     // }
+    //printArray(array, size);
 
     if (!noDuplicates(array, size)){
         return false;
@@ -480,9 +392,6 @@ bool validPlacement(int * board, int choice, int value){
 
     return true;
 }
-
-// ========================================================================================
-// ========================================================================================
 
 bool isCorrectGuess(int * board, int choice, int value){
     if ( (board[choice] & 0b00001111) == value){
