@@ -18,6 +18,7 @@ void printArray(int*, int);
 void removeElementByValue(int*&, int, int);
 bool isPresent(int*, int, int);
 bool validRow(int*, int);
+void hideBoard(int *&, int);
 
 int main(){
 
@@ -32,17 +33,11 @@ int main(){
         board[i] = 0;
     }
 
-    std::cout << "Generating Board..." << std::endl;
     board = generateBoard();
+    hideBoard(board, 9);
+    printBoard(board);
 
-    // For loop for testing the printBoard funtion. Tests to see if printing hidden/unhidden values properly
-    for (int i = 0 ; i < 81 ; i++){
-        if (i % 9 != 0){
-            board[i] = board[i] ^ 0b00010000;
-        }
-    }
-
-    while(lives > 0){
+    /*while(lives > 0){
         system("cls");
         printBoard(board);
 
@@ -63,12 +58,53 @@ int main(){
             break;
         }
         unhide(board, choice);
-    }
+    }*/
 
     delete board;
     board = nullptr;
 
     return 0;
+}
+
+void hideBoard(int *& board, int difficulty){
+
+    // Random seed for the modern random engine
+    unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
+
+    // Random engine
+    std::default_random_engine eng(seed);
+
+    int * slots = new int[9]{0,0,0,0,0,0,0,0,0};
+    int count = 0;
+
+    for (int j = 0 ; j < 9 ; j++){
+        while (count < 4){
+            for (int i = 0 ; i < 9 ; i++){
+                if ((eng() % difficulty < 4) && slots[i] != 1){
+                    count++;
+                    slots[i] = 1;
+                }
+                if (count > 3){
+                    break;
+                }
+            }
+        }
+
+        count = 0;
+        for (int i = 0 ; i < 9 ; i++){
+            if (slots[i] != 1){
+                board[9*j + i] = board[9*j + i] ^ 0b00010000;
+            }
+        }
+
+
+        delete[] slots;
+        slots = nullptr;
+        slots = new int[9]{0,0,0,0,0,0,0,0,0};
+    }
+    
+    delete[] slots;
+    slots = nullptr;
 }
 
 bool isPresent(int * array, int size, int element){
@@ -106,60 +142,6 @@ int * generateBoard(){
         board[i] = 0;
     }
 
-    // int * box1 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box2 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box3 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box4 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box5 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box6 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box7 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box8 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box9 = new int[9]{0,0,0,0,0,0,0,0,0};
-
-    // int * col1 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row1 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col2 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row2 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col3 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row3 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col4 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row4 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col5 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row5 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col6 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row6 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col7 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row7 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col8 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row8 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col9 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row9 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int ** boxes = new int * [9]{box1, box2, box3, box4, box5, box6, box7, box8, box9};
-    // int ** cols = new int * [9]{col1, col2, col3, col4, col5, col6, col7, col8, col9};
-    // int ** rows = new int * [9]{row1, row2, row3, row4, row5, row6, row7, row8, row9};
-
-    // int randomRow = 0;
-    // int randomCol = 0;
-    // int * colandrownum = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // for (int i = 0 ; i < 9 ; i++){
-
-    //     for (int j = 0 ; j < 9 ; j++){
-    //         randomRow = eng() % 3 + (j/3)*3;
-    //         randomCol = eng() % 3 + (j/3)*3;
-    //         //boxes[i][j] = j + 1; rows[i][random]
-    //     }
-    // }
-
         int count = 0;
         int count35 = 0;
         int randomIndex = 0;
@@ -179,7 +161,7 @@ int * generateBoard(){
                     }
                     //printArray(nums, numsSize);
                     //printBoard(board);
-                    std::cout << i << j << "leaking" << count << std::endl;
+                    //std::cout << i << j << "leaking" << count << std::endl;
                     count += 5;
                     // if (i == 3 && j == 5){
                     //     count35 += 5;
