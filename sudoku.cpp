@@ -21,6 +21,7 @@ void removeElementByValue(int*&, int, int);
 bool isPresent(int*, int, int);
 bool validRow(int*, int);
 void runSudokuGame();
+void hideBoard(int *&, int);
 
 int main(){
 
@@ -41,17 +42,11 @@ void runSudokuGame(){
         board[i] = 0;
     }
 
-    std::cout << "Generating Board..." << std::endl;
     board = generateBoard();
+    hideBoard(board, 9);
+    printBoard(board);
 
-    // For loop for testing the printBoard funtion. Tests to see if printing hidden/unhidden values properly
-    for (int i = 0 ; i < 81 ; i++){
-        if (i % 9 != 0){
-            board[i] = board[i] ^ 0b00010000;
-        }
-    }
-
-    while(lives > 0){
+    /*while(lives > 0){
         system("cls");
         printBoard(board);
 
@@ -72,10 +67,51 @@ void runSudokuGame(){
             break;
         }
         unhide(board, choice);
-    }
+    }*/
 
     delete board;
     board = nullptr;
+}
+
+void hideBoard(int *& board, int difficulty){
+
+    // Random seed for the modern random engine
+    unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
+
+    // Random engine
+    std::default_random_engine eng(seed);
+
+    int * slots = new int[9]{0,0,0,0,0,0,0,0,0};
+    int count = 0;
+
+    for (int j = 0 ; j < 9 ; j++){
+        while (count < 4){
+            for (int i = 0 ; i < 9 ; i++){
+                if ((eng() % difficulty < 4) && slots[i] != 1){
+                    count++;
+                    slots[i] = 1;
+                }
+                if (count > 3){
+                    break;
+                }
+            }
+        }
+
+        count = 0;
+        for (int i = 0 ; i < 9 ; i++){
+            if (slots[i] != 1){
+                board[9*j + i] = board[9*j + i] ^ 0b00010000;
+            }
+        }
+
+
+        delete[] slots;
+        slots = nullptr;
+        slots = new int[9]{0,0,0,0,0,0,0,0,0};
+    }
+    
+    delete[] slots;
+    slots = nullptr;
 }
 
 bool isPresent(int * array, int size, int element){
@@ -132,7 +168,7 @@ int * generateBoard(){
                     }
                     //printArray(nums, numsSize);
                     //printBoard(board);
-                    std::cout << i << j << "leaking" << count << std::endl;
+                    //std::cout << i << j << "leaking" << count << std::endl;
                     count += 5;
                     // if (i == 3 && j == 5){
                     //     count35 += 5;
