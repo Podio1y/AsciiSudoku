@@ -2,25 +2,34 @@
 #include <chrono>
 #include <random>
 
+
+// Function Declarations
 int main();
-void printBoard(int*);
-bool checkIfHidden(int*, int, int);
-int userInput(int*);
-void unhide(int*, int);
-bool isGameWon(int*);
-bool isCorrectGuess(int*, int, int);
-bool noDuplicatesOrZero(int*);
-int* generateBoard();
-void removeElement(int*&, int, int);
-int addElement(int*&, int, int);
-bool validPlacement(int*, int, int);
+void printBoard(int*); // Prints the board, only showing unhidden elements
+bool checkIfHidden(int*, int, int); // Checks if a certain part of the board is hidden
+int userInput(int*); // Gets user input for which slot in the board they wish to guess a number for
+void unhide(int*, int); // Un-hides the element on the board at a specified position
+bool isGameWon(int*); // Checks if the game is won
+bool isCorrectGuess(int*, int, int); // Checks if the guess was correct
+bool noDuplicatesOrZero(int*); // Checks if there are no duplicates or zeros in the array passed in
+int* generateBoard(); // Returns a randomly generated sudoku board
+void removeElement(int*&, int, int); // Removes an element at a specified position in an array
+int addElement(int*&, int, int); // Adds an element at a specified position to an array
+bool validPlacement(int*, int, int); // 
 void printArray(int*, int);
 void removeElementByValue(int*&, int, int);
 bool isPresent(int*, int, int);
 bool validRow(int*, int);
+void runSudokuGame();
 
 int main(){
 
+    runSudokuGame();
+
+    return 0;
+}
+
+void runSudokuGame(){
     //int * board = new int [81]{5,9,1,4,2,3,7,6,8,4,2,8,6,7,5,1,3,9,3,7,6,9,8,1,2,4,5,6,8,7,3,5,4,9,2,1,  9,5,3,8,1,6,4,8,7  ,2,1,4,8,9,7,6,5,3,1,6,2,5,3,9,8,7,4,8,3,9,7,4,2,5,1,6,7,4,5,1,6,8,3,9,2}; // Board array
     int * board = new int [81];
     // int * testBoard = new int[81]{5,9,0,4,2,3,7,6,8,4,2,8,6,7,5,1,3,9,3,7,6,9,8,1,2,4,5,6,8,7,3,5,4,9,2,1,9,5,3,2,1,6,4,8,7,2,1,4,8,9,7,6,5,3,1,6,2,5,3,9,8,7,4,8,3,9,7,4,2,5,1,6,7,4,5,1,6,8,3,9,2};
@@ -67,8 +76,6 @@ int main(){
 
     delete board;
     board = nullptr;
-
-    return 0;
 }
 
 bool isPresent(int * array, int size, int element){
@@ -105,60 +112,6 @@ int * generateBoard(){
     for (int i = 0 ; i < 81 ; i++){
         board[i] = 0;
     }
-
-    // int * box1 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box2 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box3 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box4 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box5 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box6 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box7 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box8 = new int[9]{0,0,0,0,0,0,0,0,0};
-    // int * box9 = new int[9]{0,0,0,0,0,0,0,0,0};
-
-    // int * col1 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row1 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col2 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row2 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col3 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row3 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col4 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row4 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col5 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row5 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col6 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row6 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col7 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row7 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col8 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row8 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int * col9 = new int[9]{0,1,2,3,4,5,6,7,8};
-    // int * row9 = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // int ** boxes = new int * [9]{box1, box2, box3, box4, box5, box6, box7, box8, box9};
-    // int ** cols = new int * [9]{col1, col2, col3, col4, col5, col6, col7, col8, col9};
-    // int ** rows = new int * [9]{row1, row2, row3, row4, row5, row6, row7, row8, row9};
-
-    // int randomRow = 0;
-    // int randomCol = 0;
-    // int * colandrownum = new int[9]{0,1,2,3,4,5,6,7,8};
-
-    // for (int i = 0 ; i < 9 ; i++){
-
-    //     for (int j = 0 ; j < 9 ; j++){
-    //         randomRow = eng() % 3 + (j/3)*3;
-    //         randomCol = eng() % 3 + (j/3)*3;
-    //         //boxes[i][j] = j + 1; rows[i][random]
-    //     }
-    // }
 
         int count = 0;
         int count35 = 0;
