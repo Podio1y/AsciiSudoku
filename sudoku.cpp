@@ -22,12 +22,17 @@ bool isPresent(int*, int, int);
 bool validRow(int*, int);
 void runSudokuGame();
 void hideBoard(int *&, int);
+void menu();
 
 int main(){
 
     runSudokuGame();
 
     return 0;
+}
+
+void menu(){
+    
 }
 
 void runSudokuGame(){
@@ -182,13 +187,13 @@ int * generateBoard(){
                 //std::cout << "VALID ROW" << validRow(board, j) << std::endl;
                 
                 if (count == 500){
-                    printBoard(board);
+                    //printBoard(board);
                     for (int i = 0 ; i < 9 ; i++){
                         board[i + j*9] = 0;
                     }
                     j--;
                     count = 0;
-                    printBoard(board);
+                    //printBoard(board);
                     break;
                 }
             }
