@@ -1,11 +1,16 @@
 #include <iostream>
 #include <chrono>
 #include <random>
+#include <conio.h>
 
+// Working on following bugs/features:
+// 1. Stops printing board after multiple failed guesses on already filled slots
+// 2. genBoard takes very long very rarely, planning to reset it after 2 seconds runtime
+// 3. Gives an extra round before stopping after lives hit 0.
 
 // Function Declarations
 int main();
-void printBoard(int*); // Prints the board, only showing unhidden elements
+void printBoard(int*, int); // Prints the board, only showing unhidden elements
 bool checkIfHidden(int*, int, int); // Checks if a certain part of the board is hidden
 int userInput(int*); // Gets user input for which slot in the board they wish to guess a number for
 void unhide(int*, int); // Un-hides the element on the board at a specified position
@@ -15,24 +20,79 @@ bool noDuplicatesOrZero(int*); // Checks if there are no duplicates or zeros in 
 int* generateBoard(); // Returns a randomly generated sudoku board
 void removeElement(int*&, int, int); // Removes an element at a specified position in an array
 int addElement(int*&, int, int); // Adds an element at a specified position to an array
-bool validPlacement(int*, int, int); // 
-void printArray(int*, int);
-void removeElementByValue(int*&, int, int);
-bool isPresent(int*, int, int);
-bool validRow(int*, int);
-void runSudokuGame();
-void hideBoard(int *&, int);
-void menu();
+bool validPlacement(int*, int, int); // Checks to see if a number can be palced a a certain position on the board
+                                     // safely, without breaking sudoku rules. This is used in generating the board.
+void printArray(int*, int); // Prints the first x elements of the array passed in
+void removeElementByValue(int*&, int, int); // Removes the element with the value specified from the array passed in
+bool isPresent(int*, int, int); // Checks if a value is present in an array or not
+bool validRow(int*, int); // Checks if the row has any incorrect placements that break sudoku rules
+void runSudokuGame(); // Runs the sudoku game
+void hideBoard(int *&, int); // Hides a certain amount of elements on the board depending on the difficulty value passed in
+void menu(char&); // Displays the menu and takes input
+void goodbye(); // Goodbye message
+void instructions(); // Instructions page
+void letterInput(char&); // Takes any input and converts it to capital letter if necessary
 
 int main(){
 
-    runSudokuGame();
+    char input = 0;
+    
+    while (input != 'E'){
+        menu(input);
+    }
+    goodbye();
 
     return 0;
 }
 
-void menu(){
-    
+void instructions(){
+    char pauseProgram = 0;
+    system("cls");
+    std::cout << "Instructions: " << std::endl;
+    std::cout << "\n\t1. Your goal is to fill in every slot on the 9x9 board with numbers ranging from 1-9." << std::endl;
+    std::cout << "\n\t2. There can never be the same number in any row, column, or box." << std::endl;
+    std::cout << "\n\t\t(This means that each row, column, and box must have all numbers from 1-9)" << std::endl;
+    std::cout << "\n\t3. You will start with numbers already revealed, harder difficulties start with less.\n" << std::endl;
+    std::cout << "\n\tGOOD LUCK HAVE FUN!!!\n\n";
+
+    letterInput(pauseProgram);
+}
+
+void goodbye(){
+    char endProgram = 0;
+
+    std::cout << "\n\nHope you enjoyed your game!!" << std::endl;
+    std::cout << "\n\nPress any key to exit the program..." << std::endl;
+
+    letterInput(endProgram);
+}
+
+void menu(char & input){
+    system("cls");
+    std::cout << " [P]lay - [I]nstructions - [E]xit" << std::endl;
+
+    letterInput(input);
+
+    while (input != 'P' && input != 'I' && input != 'E'){
+        std::cout << "Sorry that was an invalid input.\n";
+        std::cout << "Please try again...\n";
+
+        letterInput(input);
+        system("cls");
+        std::cout << " [P]lay - [I]nstructions - [E]xit" << std::endl;
+    }
+
+    if (input == 'P'){
+        runSudokuGame();
+    }
+    else if (input == 'I'){
+        instructions();
+    }
+}
+
+void letterInput(char& input){
+    input = getch();
+    input = (input > 90) ? (input - 32) : input;
 }
 
 void runSudokuGame(){
@@ -47,13 +107,13 @@ void runSudokuGame(){
         board[i] = 0;
     }
 
+    // Generating the board
     board = generateBoard();
     hideBoard(board, 9);
-    printBoard(board);
 
-    /*while(lives > 0){
+    while(lives > 0){
         system("cls");
-        printBoard(board);
+        printBoard(board, lives);
 
         choice = userInput(board);
         
@@ -61,8 +121,10 @@ void runSudokuGame(){
         std::cin >> value;
 
         while ((!isCorrectGuess(board, choice, value) && lives > 0)){
+            system("cls");
             std::cout << "That can't go there!" << std::endl;
             lives--;
+            printBoard(board, lives);
             choice = userInput(board);
 
             std::cout << "Please enter your guess: " << std::endl;
@@ -72,7 +134,7 @@ void runSudokuGame(){
             break;
         }
         unhide(board, choice);
-    }*/
+    }
 
     delete board;
     board = nullptr;
@@ -498,13 +560,13 @@ bool checkIfHidden(int * board, int x, int y){
     return ( (board[x + (y-1)*9 - 1 ] & 0b00010000) == 0b00010000); // Returns true if hidden, false if not
 }
 
-void printBoard(int * board){
+void printBoard(int * board, int lives){
 
     int hiddenMask = 0b00010000; // Bit to check if the board value at a specific loction is hidden or not
     int count = 0;
     int columnCount = 1;
 
-    std::cout << "    1  2  3   4  5  6   7  8  9" << std::endl;
+    std::cout << "    1  2  3   4  5  6   7  8  9" << "     Lives: " << lives << std::endl;
     for (int j = 0 ; j < 13 ; j++){
 
         if (j % 4 == 0){
