@@ -211,51 +211,60 @@ int * generateBoard(){
     // Stores temporary numbers
     int * nums = new int[9]{1,2,3,4,5,6,7,8,9};
     int numsSize = 9;
+    
+    // Vars to measure the time it takes to generate the board, and to reset if it exceeds a certain limit.
+    auto generateStart = std::chrono::steady_clock::now();
+    auto generateFinish = std::chrono::steady_clock::now();
+    double elapsedTime = std::chrono::duration_cast < std::chrono::duration<double> >(generateFinish - generateStart).count();
 
-    for (int i = 0 ; i < 81 ; i++){
-        board[i] = 0;
-    }
+    while (true){
+    
+        generateStart = std::chrono::steady_clock::now();
+
+        // Clears board
+        for (int i = 0 ; i < 81 ; i++){
+            board[i] = 0;
+        }
 
         int count = 0;
-        int count35 = 0;
         int randomIndex = 0;
         
         for (int j = 0 ; j < 9 ; j++){
             for (int i = 0 ; i < 9 ; i++){
                 
-
                 do {
                     randomIndex = (numsSize > 1) ? (eng() % numsSize) : 0;
-                    //std::cout << "potential guess: " << nums[randomIndex] << std::endl;
+
+                    generateFinish = std::chrono::steady_clock::now();
+                    elapsedTime = std::chrono::duration_cast < std::chrono::duration<double> >(generateFinish - generateStart).count();
+                    if (elapsedTime > 3.0){
+                        i = 9;
+                        j = 9;
+                        break;
+                    }
+                    
                     if (validPlacement(board, i + j*9, nums[randomIndex])){
                         board[i + j*9] = nums[randomIndex];
                         removeElement(nums, numsSize, randomIndex);
                         numsSize--;
                         break;
                     }
-                    //printArray(nums, numsSize);
-                    //printBoard(board);
-                    //std::cout << i << j << "leaking" << count << std::endl;
-                    count += 5;
-                    // if (i == 3 && j == 5){
-                    //     count35 += 5;
-                    // }
+
+                    count++;
+
                 }
-                while(count < 500); 
+                while(count < 100); 
 
                 // If it got stuck, retry that row. 
                 // This is a really terrible method and relies on luck, but eventually it works. 
                 // I am trying to make a much smarter algorithm.
-                //std::cout << "VALID ROW" << validRow(board, j) << std::endl;
                 
-                if (count == 500){
-                    //printBoard(board);
+                if (count == 100){
                     for (int i = 0 ; i < 9 ; i++){
                         board[i + j*9] = 0;
                     }
                     j--;
                     count = 0;
-                    //printBoard(board);
                     break;
                 }
             }
@@ -265,7 +274,13 @@ int * generateBoard(){
             nums = nullptr;
             nums = new int[9]{1,2,3,4,5,6,7,8,9};
         }
-    
+
+        // Checking to see if the board is complete, if not, the loop will restart and redo the whole board
+        if (board[80] != 0){
+            break;
+        }
+    }
+
     return board;
 }
 
