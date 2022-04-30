@@ -111,6 +111,7 @@ void runSudokuGame(){
     board = generateBoard();
     hideBoard(board, 9);
 
+    // Game Loop
     while(lives > 0){
         system("cls");
         printBoard(board, lives);
