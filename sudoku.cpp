@@ -4,15 +4,13 @@
 #include <conio.h>
 
 // Working on following bugs/features:
-// 1. Stops printing board after multiple failed guesses on already filled slots
-// 2. genBoard takes very long very rarely, planning to reset it after 2 seconds runtime
-// 3. Gives an extra round before stopping after lives hit 0.
+// 1. Gives an extra round before stopping after lives hit 0.
 
 // Function Declarations
 int main();
 void printBoard(int*, int); // Prints the board, only showing unhidden elements
 bool checkIfHidden(int*, int, int); // Checks if a certain part of the board is hidden
-int userInput(int*); // Gets user input for which slot in the board they wish to guess a number for
+int userInput(int*, int); // Gets user input for which slot in the board they wish to guess a number for
 void unhide(int*, int); // Un-hides the element on the board at a specified position
 bool isGameWon(int*); // Checks if the game is won
 bool isCorrectGuess(int*, int, int); // Checks if the guess was correct
@@ -116,7 +114,7 @@ void runSudokuGame(){
         system("cls");
         printBoard(board, lives);
 
-        choice = userInput(board);
+        choice = userInput(board, lives);
         
         std::cout << "Please enter your guess: " << std::endl;
         std::cin >> value;
@@ -126,7 +124,7 @@ void runSudokuGame(){
             std::cout << "That can't go there!" << std::endl;
             lives--;
             printBoard(board, lives);
-            choice = userInput(board);
+            choice = userInput(board, lives);
 
             std::cout << "Please enter your guess: " << std::endl;
             std::cin >> value;
@@ -540,13 +538,16 @@ void unhide(int * board, int index){
     board[index] = board[index] ^ 0b00010000;
 }
 
-int userInput(int * board){
+int userInput(int * board, int lives){
     int x = 0;
     int y = 0;
     bool valid = false;
 
     do
     {
+        system("cls");
+        printBoard(board, lives);
+
         std::cout << "Please input your x coordinate: " << std::endl;
         std::cin >> x;
 
@@ -556,6 +557,9 @@ int userInput(int * board){
         valid = (x < 10 && x > 0) && (y < 10 && y > 0) && (!checkIfHidden(board, x, y));
 
         while (valid){
+            system("cls");
+            printBoard(board, lives);
+
             std::cout << "Sorry that tile is invalid, or has already been revealed!" << std::endl;
             std::cout << "Please try again..." << std::endl;
 
@@ -564,7 +568,7 @@ int userInput(int * board){
 
             std::cout << "Please input your y coordinate: " << std::endl;
             std::cin >> y;
-            system("cls");
+            valid = (x < 10 && x > 0) && (y < 10 && y > 0) && (!checkIfHidden(board, x, y));
         }
     }
     while (valid);
@@ -582,7 +586,7 @@ void printBoard(int * board, int lives){
     int count = 0;
     int columnCount = 1;
 
-    std::cout << "    1  2  3   4  5  6   7  8  9" << "     Lives: " << lives << std::endl;
+    std::cout << "    1  2  3   4  5  6   7  8  9" << "     Lives Left: " << lives << std::endl;
     for (int j = 0 ; j < 13 ; j++){
 
         if (j % 4 == 0){
