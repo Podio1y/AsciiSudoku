@@ -8,10 +8,10 @@
 
 // Function Declarations
 int main();
-void printBoard(int*, int); // Prints the board, only showing unhidden elements
+void printBoard(int*, int, int *&); // Prints the board, only showing unhidden elements
 bool checkIfHidden(int*, int, int); // Checks if a certain part of the board is hidden
-int userInput(int*, int); // Gets user input for which slot in the board they wish to guess a number for
-void unhide(int*, int); // Un-hides the element on the board at a specified position
+int userInput(int*, int, int *&); // Gets user input for which slot in the board they wish to guess a number for
+void unhide(int*, int, int *&); // Un-hides the element on the board at a specified position
 bool isGameWon(int*); // Checks if the game is won
 bool isCorrectGuess(int*, int, int); // Checks if the guess was correct
 bool noDuplicatesOrZero(int*); // Checks if there are no duplicates or zeros in the array passed in
@@ -25,11 +25,12 @@ void removeElementByValue(int*&, int, int); // Removes the element with the valu
 bool isPresent(int*, int, int); // Checks if a value is present in an array or not
 bool validRow(int*, int); // Checks if the row has any incorrect placements that break sudoku rules
 void runSudokuGame(); // Runs the sudoku game
-void hideBoard(int *&, int); // Hides a certain amount of elements on the board depending on the difficulty value passed in
+void hideBoard(int *&, int, int *&); // Hides a certain amount of elements on the board depending on the difficulty value passed in
 void menu(char&); // Displays the menu and takes input
 void goodbye(); // Goodbye message
 void instructions(); // Instructions page
 void letterInput(char&); // Takes any input and converts it to capital letter if necessary
+void setInitialUsageValues(int * board, int *& usageCount);
 
 int main(){
 
@@ -100,6 +101,7 @@ void runSudokuGame(){
     int choice = 0;
     int lives = 3;
     int value = 0;
+    int * usageCount = new int [9]{0,0,0,0,0,0,0,0,0};
 
     for (int i = 0 ; i < 81 ; i++){
         board[i] = 0;
@@ -107,14 +109,15 @@ void runSudokuGame(){
 
     // Generating the board
     board = generateBoard();
-    hideBoard(board, 9);
+    hideBoard(board, 9, usageCount);
+    setInitialUsageValues(board, usageCount);
 
     // Game Loop
     while(lives > 0){
         system("cls");
-        printBoard(board, lives);
+        printBoard(board, lives, usageCount);
 
-        choice = userInput(board, lives);
+        choice = userInput(board, lives, usageCount);
         
         std::cout << "Please enter your guess: " << std::endl;
         std::cin >> value;
@@ -123,8 +126,8 @@ void runSudokuGame(){
             system("cls");
             std::cout << "That can't go there!" << std::endl;
             lives--;
-            printBoard(board, lives);
-            choice = userInput(board, lives);
+            printBoard(board, lives, usageCount);
+            choice = userInput(board, lives, usageCount);
 
             std::cout << "Please enter your guess: " << std::endl;
             std::cin >> value;
@@ -132,14 +135,14 @@ void runSudokuGame(){
         if (lives <= 0 || isGameWon(board)){
             break;
         }
-        unhide(board, choice);
+        unhide(board, choice, usageCount);
     }
 
     delete board;
     board = nullptr;
 }
 
-void hideBoard(int *& board, int difficulty){
+void hideBoard(int *& board, int difficulty, int *& usageCount){
 
     // Random seed for the modern random engine
     unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -178,6 +181,16 @@ void hideBoard(int *& board, int difficulty){
     
     delete[] slots;
     slots = nullptr;
+}
+
+void setInitialUsageValues(int * board, int *& usageCount){
+
+    for (int j = 0 ; j < 81 ; j++){
+
+        if (board[j] <= 9){
+            usageCount[ board[j] - 1 ]++;
+        }
+    }
 }
 
 bool isPresent(int * array, int size, int element){
@@ -534,11 +547,12 @@ bool isGameWon(int * board){
     return true;
 }
 
-void unhide(int * board, int index){
+void unhide(int * board, int index, int *& usageCount){
     board[index] = board[index] ^ 0b00010000;
+    usageCount[board[index] - 1]++;
 }
 
-int userInput(int * board, int lives){
+int userInput(int * board, int lives, int *& usageCount){
     int x = 0;
     int y = 0;
     bool valid = false;
@@ -546,7 +560,7 @@ int userInput(int * board, int lives){
     do
     {
         system("cls");
-        printBoard(board, lives);
+        printBoard(board, lives, usageCount);
 
         std::cout << "Please input your x coordinate: " << std::endl;
         std::cin >> x;
@@ -558,7 +572,7 @@ int userInput(int * board, int lives){
 
         while (valid){
             system("cls");
-            printBoard(board, lives);
+            printBoard(board, lives, usageCount);
 
             std::cout << "Sorry that tile is invalid, or has already been revealed!" << std::endl;
             std::cout << "Please try again..." << std::endl;
@@ -580,7 +594,7 @@ bool checkIfHidden(int * board, int x, int y){
     return ( (board[x + (y-1)*9 - 1 ] & 0b00010000) == 0b00010000); // Returns true if hidden, false if not
 }
 
-void printBoard(int * board, int lives){
+void printBoard(int * board, int lives, int *& usageCount){
 
     int hiddenMask = 0b00010000; // Bit to check if the board value at a specific loction is hidden or not
     int count = 0;
@@ -610,6 +624,12 @@ void printBoard(int * board, int lives){
                     }
                     count++;
                 }
+            }
+        }
+        if (j <= 9 && j >= 1){
+            std::cout << "   " << j << "'s: " << usageCount[j-1];
+            if ( usageCount[j-1] == 9){
+                std::cout << "  done";
             }
         }
         std::cout << std::endl;
