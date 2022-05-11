@@ -30,7 +30,8 @@ void menu(char&); // Displays the menu and takes input
 void goodbye(); // Goodbye message
 void instructions(); // Instructions page
 void letterInput(char&); // Takes any input and converts it to capital letter if necessary
-void setInitialUsageValues(int * board, int *& usageCount);
+void setInitialUsageValues(int * board, int *& usageCount); // Stores the amount of times each number appears on
+                                                            // on the board at the start of the game
 
 int main(){
 
@@ -44,6 +45,7 @@ int main(){
     return 0;
 }
 
+// Prints instructions
 void instructions(){
     char pauseProgram = 0;
     system("cls");
@@ -57,6 +59,7 @@ void instructions(){
     letterInput(pauseProgram);
 }
 
+// Prints goodbye message and asks to quit
 void goodbye(){
     char endProgram = 0;
 
@@ -66,12 +69,15 @@ void goodbye(){
     letterInput(endProgram);
 }
 
+// Runs the main menu of the game
 void menu(char & input){
     system("cls");
     std::cout << " [P]lay - [I]nstructions - [E]xit" << std::endl;
 
+    // Takes input from user
     letterInput(input);
 
+    // Input loop in case of invalid inputs
     while (input != 'P' && input != 'I' && input != 'E'){
         std::cout << "Sorry that was an invalid input.\n";
         std::cout << "Please try again...\n";
@@ -81,6 +87,8 @@ void menu(char & input){
         std::cout << " [P]lay - [I]nstructions - [E]xit" << std::endl;
     }
 
+    // Deciding what to do with user input. 
+    // If 'E' is selected, none trigger, and the main loop ends in main function
     if (input == 'P'){
         runSudokuGame();
     }
@@ -89,27 +97,36 @@ void menu(char & input){
     }
 }
 
+// Takes character input from the user and converts it to capital letters if necessary
 void letterInput(char& input){
     input = getch();
     input = (input > 90) ? (input - 32) : input;
 }
 
+// Runs the sudoku game
 void runSudokuGame(){
     //int * board = new int [81]{5,9,1,4,2,3,7,6,8,4,2,8,6,7,5,1,3,9,3,7,6,9,8,1,2,4,5,6,8,7,3,5,4,9,2,1,  9,5,3,8,1,6,4,8,7  ,2,1,4,8,9,7,6,5,3,1,6,2,5,3,9,8,7,4,8,3,9,7,4,2,5,1,6,7,4,5,1,6,8,3,9,2}; // Board array
-    int * board = new int [81];
+    int * board = new int [81]; // Game board (9x9) in a 1d arrays
     // int * testBoard = new int[81]{5,9,0,4,2,3,7,6,8,4,2,8,6,7,5,1,3,9,3,7,6,9,8,1,2,4,5,6,8,7,3,5,4,9,2,1,9,5,3,2,1,6,4,8,7,2,1,4,8,9,7,6,5,3,1,6,2,5,3,9,8,7,4,8,3,9,7,4,2,5,1,6,7,4,5,1,6,8,3,9,2};
-    int choice = 0;
-    int lives = 3;
-    int value = 0;
-    int * usageCount = new int [9]{0,0,0,0,0,0,0,0,0};
+    int choice = 0; // Variable to store where the user wants to go 
+    int lives = 3; // Stores the amount of lives left
+    int value = 0; // Stores the value which the user wants to place
+    int * usageCount = new int [9]{0,0,0,0,0,0,0,0,0}; // Stores how many times each number appears on the board
+                                                       // (index + 1) corresponds to what number is stored
+                                                       // i.e. usageCount[3] stores how many times '4' appears
 
+    // Resets full board to 0
     for (int i = 0 ; i < 81 ; i++){
         board[i] = 0;
     }
 
     // Generating the board
     board = generateBoard();
+
+    // Hiding slots on the board
     hideBoard(board, 9, usageCount);
+
+    // Finds the initial amount of every number on the board and stores it in usageCount[]
     setInitialUsageValues(board, usageCount);
 
     // Game Loop
@@ -117,11 +134,13 @@ void runSudokuGame(){
         system("cls");
         printBoard(board, lives, usageCount);
 
+        // Takes user input for what spot they want to move to
         choice = userInput(board, lives, usageCount);
         
         std::cout << "Please enter your guess: " << std::endl;
         std::cin >> value;
 
+        // Input loop in the case of incorrect placements
         while ((!isCorrectGuess(board, choice, value) && lives > 0)){
             system("cls");
             std::cout << "That can't go there!" << std::endl;
@@ -132,9 +151,13 @@ void runSudokuGame(){
             std::cout << "Please enter your guess: " << std::endl;
             std::cin >> value;
         }
+
+        // Breaking the game loop if the game is won or lost
         if (lives <= 0 || isGameWon(board)){
             break;
         }
+
+        // Unhides wherever the user tried to go
         unhide(board, choice, usageCount);
     }
 
@@ -142,6 +165,7 @@ void runSudokuGame(){
     board = nullptr;
 }
 
+// Hides slots on the board depending on the difficulty entered
 void hideBoard(int *& board, int difficulty, int *& usageCount){
 
     // Random seed for the modern random engine
@@ -150,11 +174,17 @@ void hideBoard(int *& board, int difficulty, int *& usageCount){
     // Random engine
     std::default_random_engine eng(seed);
 
-    int * slots = new int[9]{0,0,0,0,0,0,0,0,0};
-    int count = 0;
+    int * slots = new int[9]{0,0,0,0,0,0,0,0,0}; // Stores where a value will be hidden or not in a row
+                                                 // 0 = hide, 1 = keep 
+    int count = 0; // Stores how many slots will be revealed per row
 
+    // Pans through all the rows of the board
     for (int j = 0 ; j < 9 ; j++){
+
+        // While the amount of revealed slots in this row is < 4
         while (count < 4){
+
+            // Pans through the slots array, randomly selecting which values to reveal.
             for (int i = 0 ; i < 9 ; i++){
                 if ((eng() % difficulty < 4) && slots[i] != 1){
                     count++;
@@ -167,6 +197,8 @@ void hideBoard(int *& board, int difficulty, int *& usageCount){
         }
 
         count = 0;
+
+        // Pans through the selected row on the current row on the board, and unhides values according to slots[]
         for (int i = 0 ; i < 9 ; i++){
             if (slots[i] != 1){
                 board[9*j + i] = board[9*j + i] ^ 0b00010000;
@@ -183,16 +215,23 @@ void hideBoard(int *& board, int difficulty, int *& usageCount){
     slots = nullptr;
 }
 
+// Finds the initial amount of every number on the board and stores it in usageCount[]
 void setInitialUsageValues(int * board, int *& usageCount){
 
+    // Pans through the whole board
     for (int j = 0 ; j < 81 ; j++){
+        
+        // If the slot is not hidden, add one to its count. 
 
+        // In other words, if the 5th bit is not on 
+        // (meaning its hidden and it will always be > 9), then add to its count.
         if (board[j] <= 9){
             usageCount[ board[j] - 1 ]++;
         }
     }
 }
 
+// Shows if a value passed in is present in the array passed in
 bool isPresent(int * array, int size, int element){
     for (int i = 0 ; i < size ; i++){
         if (element == array[i]){
@@ -202,14 +241,18 @@ bool isPresent(int * array, int size, int element){
     return false;
 }
 
+// Removes an element form an array passed in based on its value
 void removeElementByValue(int * array, int element, int size){
     for (int i = 0 ; i < size ; i++){
         if (array[i] == element){
+
+            // Removes an element at a specific index of the array passed in
             removeElement(array, size, i);
         }
     }
 }
 
+//  Generates the sudoku board
 int * generateBoard(){
     // Random seed for the modern random engine
     unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -229,8 +272,9 @@ int * generateBoard(){
     auto generateFinish = std::chrono::steady_clock::now();
     double elapsedTime = std::chrono::duration_cast < std::chrono::duration<double> >(generateFinish - generateStart).count();
 
-    while (true){
-    
+    while (board[80] != 0){
+        
+        // Start time of the generation
         generateStart = std::chrono::steady_clock::now();
 
         // Clears board
@@ -238,23 +282,29 @@ int * generateBoard(){
             board[i] = 0;
         }
 
-        int count = 0;
-        int randomIndex = 0;
+        int count = 0; // Stores How many attempts have been made to place a number in a slot
+        int randomIndex = 0; // Stores the random index for an array
         
+        // Nested loop to pan through every slot on the board
         for (int j = 0 ; j < 9 ; j++){
             for (int i = 0 ; i < 9 ; i++){
                 
+                // Loop to find a value that fits in the current slot
                 do {
-                    randomIndex = (numsSize > 1) ? (eng() % numsSize) : 0;
+                    randomIndex = (numsSize > 1) ? (eng() % numsSize) : 0; 
 
                     generateFinish = std::chrono::steady_clock::now();
                     elapsedTime = std::chrono::duration_cast < std::chrono::duration<double> >(generateFinish - generateStart).count();
+                    
+                    // If runtime has passed 3 seconds, reset the row
                     if (elapsedTime > 3.0){
                         i = 9;
                         j = 9;
                         break;
                     }
                     
+                    // If the current number selected from randomIndex fits, place it 
+                    // and remove it from the unused numbers array
                     if (validPlacement(board, i + j*9, nums[randomIndex])){
                         board[i + j*9] = nums[randomIndex];
                         removeElement(nums, numsSize, randomIndex);
@@ -271,6 +321,8 @@ int * generateBoard(){
                 // This is a really terrible method and relies on luck, but eventually it works. 
                 // I am trying to make a much smarter algorithm.
                 
+                // If there were 100 attempts, and the loop was cancelled, reset the 
+                // row, and move back up to the previous row
                 if (count == 100){
                     for (int i = 0 ; i < 9 ; i++){
                         board[i + j*9] = 0;
@@ -281,6 +333,7 @@ int * generateBoard(){
                 }
             }
 
+            // Resets the number array buffer for a new row
             numsSize = 9;
             delete[] nums;
             nums = nullptr;
@@ -296,6 +349,8 @@ int * generateBoard(){
     return board;
 }
 
+// Checks if the row passed in has all valid palcements
+// Used for testing
 bool validRow(int * board, int row){
     for (int i = 0 ; i < 9 ; i++){
         //std::cout << "valid row" << i << std::endl;
@@ -309,13 +364,19 @@ bool validRow(int * board, int row){
     return true;
 }
 
+// Prints the array passed in
+// Used for testing
 void printArray(int * array, int size){
     for (int i = 0 ; i < size ; i++){
         std::cout << "array[" << i << "]: " << array[i] << std::endl;
     }
 }
 
+// Shows whether an array has duplicates or not
 bool noDuplicates(int* array, int size){
+
+    // i and j will never collide values with this nested loop, 
+    // while also comparing every possible combination
     for (int i = 0 ; i < size - 1 ; i++){
         for (int j = i + 1 ; j < size ; j++){
 
@@ -476,6 +537,7 @@ bool validPlacement(int * board, int choice, int value){
     return true;
 }
 
+// Determines if the value geused by the user at the slot they specified is correct or not.
 bool isCorrectGuess(int * board, int choice, int value){
     if ( (board[choice] & 0b00001111) == value){
         return true;
@@ -483,6 +545,7 @@ bool isCorrectGuess(int * board, int choice, int value){
     return false;
 }
 
+// Addes an element to an array and then sorts it.
 int addElement(int *& array, int num, int size){
     int * newArray = new int[size + 1];
 
@@ -515,6 +578,7 @@ int addElement(int *& array, int num, int size){
     return size + 1;
 }
 
+// removes an element from an array at a specific index
 void removeElement(int *& array, int size, int index){
     if (size == 1){
         delete[] array;
@@ -536,6 +600,7 @@ void removeElement(int *& array, int size, int index){
     array = newArray;
 }
 
+// Returns whether the game has been own or not
 bool isGameWon(int * board){
 
     for (int i = 0 ; i < 81 ; i++){
@@ -547,16 +612,20 @@ bool isGameWon(int * board){
     return true;
 }
 
+// Unhides a specific slot on the board, and increments how many 
+// times that unhidden value has apeared
 void unhide(int * board, int index, int *& usageCount){
     board[index] = board[index] ^ 0b00010000;
     usageCount[board[index] - 1]++;
 }
 
+// Takes input from the user to determine where they want to guess
 int userInput(int * board, int lives, int *& usageCount){
     int x = 0;
     int y = 0;
     bool valid = false;
 
+    // Input loop incase they input invalid values
     do
     {
         system("cls");
@@ -570,6 +639,7 @@ int userInput(int * board, int lives, int *& usageCount){
 
         valid = (x < 10 && x > 0) && (y < 10 && y > 0) && (!checkIfHidden(board, x, y));
 
+        // While the tile seleced was invalid, keep asking until they enter a valid one
         while (valid){
             system("cls");
             printBoard(board, lives, usageCount);
@@ -590,16 +660,19 @@ int userInput(int * board, int lives, int *& usageCount){
     return (x + (y-1)*9 - 1);
 }
 
+// Checks if a certain spot on the board is hidden or not
 bool checkIfHidden(int * board, int x, int y){
     return ( (board[x + (y-1)*9 - 1 ] & 0b00010000) == 0b00010000); // Returns true if hidden, false if not
 }
 
+// Prints the board as well as the usageCount and lives
 void printBoard(int * board, int lives, int *& usageCount){
 
     int hiddenMask = 0b00010000; // Bit to check if the board value at a specific loction is hidden or not
     int count = 0;
     int columnCount = 1;
 
+    // Printing loop
     std::cout << "    1  2  3   4  5  6   7  8  9" << "     Lives Left: " << lives << std::endl;
     for (int j = 0 ; j < 13 ; j++){
 
