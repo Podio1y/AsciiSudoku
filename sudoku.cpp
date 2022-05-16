@@ -152,13 +152,20 @@ void runSudokuGame(){
             std::cin >> value;
         }
 
-        // Breaking the game loop if the game is won or lost
-        if (lives <= 0 || isGameWon(board)){
-            break;
-        }
-
         // Unhides wherever the user tried to go
         unhide(board, choice, usageCount);
+
+        // Breaking the game loop if the game is won
+        if (isGameWon(board)){
+            char pauseProgram = 0;
+            system("cls");
+            printBoard(board, lives, usageCount);
+
+            std::cout << "\nNICE JOB!!!" << std::endl;
+            std::cout << "\nPress any key to continue..." << std::endl;
+            letterInput(pauseProgram);
+            break;
+        }
     }
 
     delete board;
@@ -262,17 +269,21 @@ int * generateBoard(){
 
     // Stores final board
     int * board = new int[81];
+    for (int i = 0 ; i < 81 ; i++){
+        board[i] = 0;
+    }
 
     // Stores temporary numbers
     int * nums = new int[9]{1,2,3,4,5,6,7,8,9};
     int numsSize = 9;
+    int slotsFilled = 0;
     
     // Vars to measure the time it takes to generate the board, and to reset if it exceeds a certain limit.
     auto generateStart = std::chrono::steady_clock::now();
     auto generateFinish = std::chrono::steady_clock::now();
     double elapsedTime = std::chrono::duration_cast < std::chrono::duration<double> >(generateFinish - generateStart).count();
 
-    while (board[80] != 0){
+    while (slotsFilled < 81){
         
         // Start time of the generation
         generateStart = std::chrono::steady_clock::now();
@@ -328,6 +339,7 @@ int * generateBoard(){
                         board[i + j*9] = 0;
                     }
                     j--;
+                    slotsFilled -= 9;
                     count = 0;
                     break;
                 }
@@ -338,8 +350,9 @@ int * generateBoard(){
             delete[] nums;
             nums = nullptr;
             nums = new int[9]{1,2,3,4,5,6,7,8,9};
+            slotsFilled += 9;
         }
-
+        
         // Checking to see if the board is complete, if not, the loop will restart and redo the whole board
         if (board[80] != 0){
             break;
